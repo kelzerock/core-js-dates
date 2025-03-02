@@ -298,8 +298,43 @@ function getQuarter(date) {
  * { start: '01-01-2024', end: '15-01-2024' }, 1, 3 => ['01-01-2024', '05-01-2024', '09-01-2024', '13-01-2024']
  * { start: '01-01-2024', end: '10-01-2024' }, 1, 1 => ['01-01-2024', '03-01-2024', '05-01-2024', '07-01-2024', '09-01-2024']
  */
-function getWorkSchedule(/* period, countWorkDays, countOffDays */) {
-  throw new Error('Not implemented');
+function getWorkSchedule({ start, end }, countWorkDays, countOffDays) {
+  const pad = (num) => num.toString().padStart(2, '0');
+
+  const printDate = (date) => {
+    return `${pad(date.getDate())}-${pad(date.getMonth() + 1)}-${date.getFullYear()}`;
+  };
+
+  const [startDay, startMonth, startYear] = start.split('-').map(Number);
+  const [endDay, endMonth, endYear] = end.split('-').map(Number);
+  const startDate = new Date(startYear, startMonth - 1, startDay);
+  const endDate = new Date(endYear, endMonth - 1, endDay);
+  let isWork = true;
+  const result = [];
+  let workDayCount = 0;
+  let offDayCount = 0;
+  if (endDate.getTime() <= startDate.getTime())
+    throw new Error('The end date must be greater than the start date');
+  const currentDate = new Date(startDate.getTime());
+  while (currentDate.getTime() <= endDate.getTime()) {
+    if (isWork) {
+      const print = printDate(currentDate);
+      result.push(print);
+      if (workDayCount + 1 === countWorkDays) {
+        isWork = false;
+        workDayCount = 0;
+      } else {
+        workDayCount += 1;
+      }
+    } else if (offDayCount + 1 === countOffDays) {
+      isWork = true;
+      offDayCount = 0;
+    } else {
+      offDayCount += 1;
+    }
+    currentDate.setDate(currentDate.getDate() + 1);
+  }
+  return result;
 }
 
 /**
